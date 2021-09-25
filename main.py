@@ -1,29 +1,11 @@
-from fastapi import FastAPI, HTTPException
-from models import Item
+from fastapi import FastAPI
+from routers import items_router
 
 app = FastAPI()
 
-items = {}
-
-DISCOUNT = 0.15
+app.include_router(items_router)
 
 
 @app.get("/")
 async def hard_coded():
     return "some hard coded data"
-
-
-@app.post("/item")
-async def item_post(item: Item):
-    items[item.name] = item
-    return {
-        "name": item.name + " (with discount)",
-        "price": item.price * (1 - DISCOUNT)
-    }
-
-
-@app.get("/item/{name}")
-async def item_get(name: str):
-    if name not in items:
-        raise HTTPException(status_code=404, detail="item not found")
-    return items[name]
