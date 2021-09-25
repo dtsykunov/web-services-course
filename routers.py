@@ -14,7 +14,7 @@ async def items_readall():
     return items
 
 
-@items_router.post("/item")
+@items_router.post("/item", response_model=Item)
 async def item_post(item: Item):
     items[item.name] = item
     return {
@@ -23,7 +23,7 @@ async def item_post(item: Item):
     }
 
 
-@items_router.get("/{name}")
+@items_router.get("/{name}", response_model=Item)
 async def item_get(name: str):
     if name not in items:
         raise HTTPException(status_code=404, detail="item not found")
