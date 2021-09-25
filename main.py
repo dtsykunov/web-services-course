@@ -1,15 +1,9 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from models import Item
 
 app = FastAPI()
 
 items = {}
-
-
-class Item(BaseModel):
-    name: str
-    price: float
-
 
 DISCOUNT = 0.15
 
