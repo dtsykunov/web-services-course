@@ -1,30 +1,33 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 
-from models import Item
+from models import Item, Category, Store
 
-items = {}
+store_router = APIRouter(prefix="/store")
 
-DISCOUNT = 0.15
-
-items_router = APIRouter(prefix="/items")
+_store = Store()
 
 
-@items_router.get("/")
-async def items_readall():
-    return items
+async def get_store():
+    return _store
 
 
-@items_router.post("/item", response_model=Item)
-async def item_post(item: Item):
-    items[item.name] = item
-    return {
-        "name": item.name + " (with discount)",
-        "price": item.price * (1 - DISCOUNT)
-    }
+@store_router.get("/", response_model=Store)
+async def stock_get(store: Store = Depends(get_store)):
+    return store
 
 
-@items_router.get("/{name}", response_model=Item)
-async def item_get(name: str):
-    if name not in items:
-        raise HTTPException(status_code=404, detail="item not found")
-    return items[name]
+@store_router.post("/{category_name}", response_model=Item)
+async def add_to_stock(category_name: str,
+                       item: Item,
+                       store: Store = Depends(get_store)):
+    store.add_to_stock(category_name, item)
+    return item
+
+
+@store_router.get("/{category_name}/{item_name}", response_model=list[Item])
+async def items_in_stock(category_name: str,
+                         item_name: str,
+                         store: Store = Depends(get_store)):
+    if not store.contains(category_name, item_name):
+        raise HTTPException(status_code=404, detail="not found")
+    return store.get_items(category_name, item_name)
